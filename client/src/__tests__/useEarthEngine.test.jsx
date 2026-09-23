@@ -25,7 +25,8 @@ describe("useEarthEngine — imagery lifecycle (DESIGN.md §7)", () => {
       .mockResolvedValueOnce(json({ name: "Kanpur", lat: 26.4499, lng: 80.3319 }))
       .mockResolvedValueOnce(json({ image_url: "/thumb/b.png", date: "2020-06-01" }))
       .mockResolvedValueOnce(json({ image_url: "/thumb/a.png" }))
-      .mockResolvedValueOnce(json({ change_pct: 4.2 }));
+      .mockResolvedValueOnce(json({ change_pct: 4.2 }))
+      .mockResolvedValueOnce(json({ image_url: "/thumb/water.png", delta_km2: 1.2, delta_ndwi: 0.03 }));
 
     render(<Probe />);
     screen.getByText("GO").click();
@@ -36,6 +37,7 @@ describe("useEarthEngine — imagery lifecycle (DESIGN.md §7)", () => {
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/img?"));
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/index?"));
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/change?"));
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/water?"));
 
     fetchMock.mockRestore();
   });

@@ -78,6 +78,20 @@ NDVI-style index delta between two epochs at one point (APERTURE ~120 m).
 
 > `nir_red_reflectance_*` are Sentinel-2 L2A SR (B8 NIR / B4 Red, ÷10000, APERTURE ~120 m) — the raw spectral evidence behind each index delta. Cached as `pixel-json-v2`.
 
+### `GET /api/water?lat=&lng=&s1=&e1=&s2=&e2=`
+Region-wide landmass surface-water content (NDWI `(B3-B8)/(B3+B8)`) across the full observation footprint for both epochs.
+
+```json
+{
+  "epoch_a": {"ndwi_mean": -0.248, "ndwi_p25": -0.353, "ndwi_p75": -0.143, "water_km2": 0.88, "water_pct": 1.2, "scale_m": 30},
+  "epoch_b": {"ndwi_mean": -0.272, "ndwi_p25": -0.385, "ndwi_p75": -0.154, "water_km2": 0.79, "water_pct": 1.1, "scale_m": 30},
+  "total_km2": 71.26,
+  "delta_km2": -0.09, "delta_ndwi": -0.024,
+  "interpretation": "Surface water extent is stable across the footprint.",
+  "image_url": "/thumb/<sha256>.png"
+}
+```
+
 ### `GET /api/change?lat=&lng=&s1=&e1=&s2=&e2=`
 Full scene change detection (NDVI difference + Sentinel-1 SAR corroboration) between two epochs.
 

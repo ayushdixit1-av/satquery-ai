@@ -35,6 +35,7 @@ export function useEarthEngine() {
   const [after, setAfter] = useState(null);
   const [afterRaw, setAfterRaw] = useState(null);
   const [change, setChange] = useState(null);
+  const [water, setWater] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const seq = useRef(0);
@@ -59,18 +60,21 @@ export function useEarthEngine() {
     setAfter(null);
     setAfterRaw(null);
     setChange(null);
+    setWater(null);
 
     const beforeP = getJSON(`${API_BASE}/api/img?lat=${lat}&lng=${lng}&start=${s1}&end=${e1}`);
     const afterP = getJSON(`${API_BASE}/api/index?lat=${lat}&lng=${lng}&start=${s2}&end=${e2}&type=${index}`)
       .catch(() => getJSON(`${API_BASE}/api/img?lat=${lat}&lng=${lng}&start=${s2}&end=${e2}`));
     const afterRawP = getJSON(`${API_BASE}/api/img?lat=${lat}&lng=${lng}&start=${s2}&end=${e2}`);
     const changeP = getJSON(`${API_BASE}/api/change?lat=${lat}&lng=${lng}&s1=${s1}&e1=${e1}&s2=${s2}&e2=${e2}`);
+    const waterP = getJSON(`${API_BASE}/api/water?lat=${lat}&lng=${lng}&s1=${s1}&e1=${e1}&s2=${s2}&e2=${e2}`);
 
     beforeP.then((r) => { if (seq.current === id) setBefore(r); }).catch((e) => { if (seq.current === id) setError(e.message); });
     afterP.then((r) => { if (seq.current === id) setAfter(r); }).catch((e) => { if (seq.current === id) setError(e.message); });
     afterRawP.then((r) => { if (seq.current === id) setAfterRaw(r); }).catch((e) => { if (seq.current === id) setError(e.message); });
     changeP.then((r) => { if (seq.current === id) setChange(r); }).catch((e) => { if (seq.current === id) setError(e.message); });
-    Promise.allSettled([afterP, changeP]).then(() => { if (seq.current === id) setLoading(false); });
+    waterP.then((r) => { if (seq.current === id) setWater(r); }).catch((e) => { if (seq.current === id) setError(e.message); });
+    Promise.allSettled([afterP, changeP, waterP]).then(() => { if (seq.current === id) setLoading(false); });
   }, [location, index, epochs]);
 
   const setEpoch = useCallback((key, value) => {
@@ -86,6 +90,6 @@ export function useEarthEngine() {
 
   return {
     location, search, index: activeIndex, setIndex,
-    epochs, setEpoch, fetchPixel, before, after, afterRaw, change, loading, error,
+    epochs, setEpoch, fetchPixel, before, after, afterRaw, change, water, loading, error,
   };
 }

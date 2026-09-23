@@ -45,3 +45,11 @@ async def pixel(
         return ee_engine.pixel_result(lat, lng, s1, e1, s2, e2, type)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/api/water")
+async def water(lat: float, lng: float, s1: str, e1: str, s2: str, e2: str, fmt: str = "png"):
+    try:
+        return ee_engine.water_result(lat, lng, s1, e1, s2, e2, fmt=fmt)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc

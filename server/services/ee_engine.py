@@ -317,3 +317,104 @@ def change_result(lat: float, lng: float, s1: str, e1: str, s2: str, e2: str, di
     }
     _store(key, result)
     return result
+
+
+def water_result(lat: float, lng: float, s1: str, e1: str, s2: str, e2: str, dim: int = 768, fmt: str = "png") -> dict:
+    """Region-wide landmass surface-water content (NDWI B3-B8 / B3+B8) for both epochs.
+
+    Covers the whole observation footprint ("all of the place"): mean wetness,
+    percentile spread, and open-water extent (NDWI > 0) with an adaptive-scale
+    memory guard — DESIGN.md §5 / §7.3.
+    """
+    require_ee()
+    key = thumb_key("water-json", lat, lng, s1, e1, s2, e2, dim, fmt)
+    if (hit := _cached(key)) is not None:
+        return hit
+    region = _region(lat, lng)
+    point = ee.Geometry.Point([lng, lat])
+
+    def composite(start, end):
+        col = (
+            ee.ImageCollection(BEST_S2)
+            .filterBounds(point)
+            .filterDate(start, end)
+            .select(INDEX_BANDS)
+        )
+        if col.size().getInfo() == 0:
+            raise ValueError(f"No Sentinel-2 imagery between {start} and {end}.")
+        return col.median().clip(region)
+
+    def distrib(start, end):
+        nd = composite(start, end).normalizedDifference(["B3", "B8"]).rename("ndwi")
+        reducer = ee.Reducer.mean().combine(ee.Reducer.percentile([25, 50, 75]), sharedInputs=True)
+        for scale in ADAPTIVE_SCALES:
+            try:
+                d = nd.reduceRegion(
+                    reducer=reducer, geometry=region, scale=scale,
+                    maxPixels=1e8, tileScale=4, bestEffort=True,
+                ).getInfo()
+                return d, scale
+            except Exception as exc:  # noqa: BLE001
+                if "memory" in str(exc).lower():
+                    continue
+                raise
+        raise ValueError("Earth Engine NDWI aggregation failed for this area.")
+
+    def extent(start, end):
+        w = composite(start, end).normalizedDifference(["B3", "B8"]).gt(0).rename("class")
+        hist, scale = safe_planetary_histogram(w, region)
+        px_area = (scale * scale) / 1e6
+        total = sum(float(v) for v in hist.values()) or 1
+        wpx = float(hist.get("1", 0))
+        return {
+            "water_km2": round(wpx * px_area, 2),
+            "total_km2": round(total * px_area, 2),
+            "water_pct": round(wpx / total * 100, 1),
+        }
+
+    dist_a, scale_a = distrib(s1, e1)
+    dist_b, scale_b = distrib(s2, e2)
+    ext_a, ext_b = extent(s1, e1), extent(s2, e2)
+
+    ndwi2 = composite(s2, e2).normalizedDifference(["B3", "B8"]).rename("ndwi")
+    vis = ndwi2.visualize(palette=["08306b", "0e4a8a", "2aa198", "7bf1a8"], min=-0.4, max=0.4)
+    url = vis.getThumbURL({"region": region, "dimensions": f"{dim}x{dim}", "format": fmt})
+
+    delta_km2 = round(ext_b["water_km2"] - ext_a["water_km2"], 2)
+    delta_ndwi = (
+        round(float(dist_b["ndwi_mean"]) - float(dist_a["ndwi_mean"]), 3)
+        if dist_a.get("ndwi_mean") is not None and dist_b.get("ndwi_mean") is not None
+        else None
+    )
+    if delta_km2 > 3:
+        note = "Surface water expanded across the footprint since the baseline epoch."
+    elif delta_km2 < -3:
+        note = "Surface water receded across the footprint since the baseline epoch."
+    else:
+        note = "Surface water extent is stable across the footprint."
+
+    result = {
+        "epoch_a": {
+            "ndwi_mean": round(float(dist_a["ndwi_mean"]), 3),
+            "ndwi_p25": round(float(dist_a["ndwi_p25"]), 3),
+            "ndwi_p75": round(float(dist_a["ndwi_p75"]), 3),
+            "water_km2": ext_a["water_km2"],
+            "water_pct": ext_a["water_pct"],
+            "scale_m": scale_a,
+        },
+        "epoch_b": {
+            "ndwi_mean": round(float(dist_b["ndwi_mean"]), 3),
+            "ndwi_p25": round(float(dist_b["ndwi_p25"]), 3),
+            "ndwi_p75": round(float(dist_b["ndwi_p75"]), 3),
+            "water_km2": ext_b["water_km2"],
+            "water_pct": ext_b["water_pct"],
+            "scale_m": scale_b,
+        },
+        "total_km2": ext_a["total_km2"],
+        "delta_km2": delta_km2,
+        "delta_ndwi": delta_ndwi,
+        "interpretation": note,
+        "image_url": cached_thumb(thumb_key("water", lat, lng, s1, e1, s2, e2, dim, fmt), url, fmt),
+    }
+    _store(key, result)
+    return result

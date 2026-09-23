@@ -9,6 +9,7 @@ import CompareCard from "@/components/comparison/CompareCard";
 import MetricMatrix from "@/components/analytics/MetricMatrix";
 import SarLedger from "@/components/analytics/SarLedger";
 import ProvenanceInspector from "@/components/analytics/ProvenanceInspector";
+import LandmassWater from "@/components/analytics/LandmassWater";
 import PanelHeader from "@/components/common/PanelHeader";
 import WaitShimmer from "@/components/common/WaitShimmer";
 import EarthGlobe from "@/components/3d/EarthGlobe";
@@ -17,7 +18,7 @@ import { useKeyboard } from "@/hooks/useKeyboard";
 import { cn } from "@/lib/utils";
 
 export default function App() {
-  const { location, search, index, setIndex, epochs, setEpoch, fetchPixel, before, after, afterRaw, change, loading, error } = useEarthEngine();
+  const { location, search, index, setIndex, epochs, setEpoch, fetchPixel, before, after, afterRaw, change, water, loading, error } = useEarthEngine();
   const [ee, setEe] = useState(false);
   const [mode, setMode] = useState("swipe");
   const [elapsed, setElapsed] = useState(0);
@@ -182,6 +183,7 @@ export default function App() {
           />
           <MetricMatrix change={change} />
           <SarLedger change={change} />
+          <LandmassWater water={water} loading={loading} />
           <ProvenanceInspector before={before} />
         </aside>
       </main>
