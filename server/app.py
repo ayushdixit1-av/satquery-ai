@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import CACHE_DIR, STATIC_DIR
-from .routes import change, chat, health, imagery
+from .routes import change, health, imagery
 
 app = FastAPI(
     title="SatQuery AI",
@@ -25,7 +25,6 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(imagery.router)
 app.include_router(change.router)
-app.include_router(chat.router)
 
 if os.path.isdir(CACHE_DIR):
     app.mount("/thumb", StaticFiles(directory=CACHE_DIR), name="thumb")

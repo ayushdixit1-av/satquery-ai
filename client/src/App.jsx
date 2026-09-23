@@ -1,5 +1,4 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { MessageSquare as MessageSquareIcon } from "lucide-react";
 import TopCommandBar from "@/components/layout/TopCommandBar";
 import StatusDock from "@/components/layout/StatusDock";
 import { TemporalEpochSelector, SpectralChips } from "@/components/layout/SidebarStations";
@@ -11,7 +10,6 @@ import MetricMatrix from "@/components/analytics/MetricMatrix";
 import SarLedger from "@/components/analytics/SarLedger";
 import ProvenanceInspector from "@/components/analytics/ProvenanceInspector";
 import LandmassWater from "@/components/analytics/LandmassWater";
-import ChatPanel from "@/components/analytics/ChatPanel";
 import PanelHeader from "@/components/common/PanelHeader";
 import WaitShimmer from "@/components/common/WaitShimmer";
 import EarthGlobe from "@/components/3d/EarthGlobe";
@@ -25,7 +23,6 @@ export default function App() {
   const [mode, setMode] = useState("swipe");
   const [elapsed, setElapsed] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [chatOpen, setChatOpen] = useState(false);
   const globeRef = useRef(null);
   const searchRef = useRef(null);
 
@@ -72,45 +69,6 @@ export default function App() {
   const beforeUrl = before?.image_url;
   const afterUrl = after?.image_url;
   const loadingComp = loading && !afterUrl;
-
-  const chatContext = useMemo(
-    () => ({
-      area: location?.name ?? null,
-      lat: location?.lat ?? null,
-      lng: location?.lng ?? null,
-      epochs,
-      image1: before?.image_url ?? null,
-      image2: after?.image_url ?? null,
-      scene1: before
-        ? {
-            scene_id: before.scene_id, date: before.date, cloud_pct: before.cloud_pct,
-            sensor: before.provenance?.sensor, spacecraft: before.provenance?.spacecraft,
-            granule: before.provenance?.granule,
-          }
-        : null,
-      scene2: after
-        ? { index: after.index, date: after.date, image_url: after.image_url }
-        : null,
-      scene2_tci: afterRaw
-        ? { scene_id: afterRaw.scene_id, date: afterRaw.date, image_url: afterRaw.image_url }
-        : null,
-      change: change
-        ? {
-            changed_km2: change.changed_km2, stable_km2: change.stable_km2,
-            water_km2: change.water_km2, total_km2: change.total_km2,
-            change_pct: change.change_pct, sar_evidence: change.sar_evidence,
-            interpretation: change.interpretation,
-          }
-        : null,
-      water: water
-        ? {
-            total_km2: water.total_km2, delta_km2: water.delta_km2,
-            delta_ndwi: water.delta_ndwi, epoch_a: water.epoch_a, epoch_b: water.epoch_b,
-          }
-        : null,
-    }),
-    [location, epochs, before, after, afterRaw, change, water],
-  );
 
   const overlayTags = useMemo(
     () => ({
@@ -237,16 +195,6 @@ export default function App() {
           ⚠ {error}
         </div>
       )}
-
-      <button
-        onClick={() => setChatOpen((o) => !o)}
-        className="btn-press fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded border border-rim bg-float px-3 py-2 t-telemetry text-emerald shadow-2xl hover:text-slate-100"
-      >
-        <MessageSquareIcon size={14} />
-        {chatOpen ? "CLOSE CHAT" : "COMPARE CHAT"}
-      </button>
-
-      {chatOpen && <ChatPanel context={chatContext} onClose={() => setChatOpen(false)} />}
     </div>
   );
 }
