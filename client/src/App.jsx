@@ -12,7 +12,7 @@ import ProvenanceInspector from "@/components/analytics/ProvenanceInspector";
 import PanelHeader from "@/components/common/PanelHeader";
 import WaitShimmer from "@/components/common/WaitShimmer";
 import EarthGlobe from "@/components/3d/EarthGlobe";
-import { useEarthEngine } from "@/hooks/useEarthEngine";
+import { useEarthEngine, API_BASE } from "@/hooks/useEarthEngine";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export default function App() {
   const searchRef = useRef(null);
 
   useEffect(() => {
-    fetch("/api/health")
+    fetch(`${API_BASE}/api/health`)
       .then((r) => r.json())
       .then((h) => setEe(!!h.ee_ok))
       .catch(() => setEe(false));

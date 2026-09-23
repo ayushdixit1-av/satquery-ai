@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** Satellite data lifecycle: location → epochs → imagery/index/change (DESIGN.md §7). */
-const API_BASE = (
+export const API_BASE = (
   import.meta.env.VITE_API_URL || new URLSearchParams(location.search).get("api") || ""
 ).replace(/\/$/, "");
+
+export function absUrl(path) {
+  if (!path || /^https?:\/\//i.test(path)) return path;
+  return `${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+}
 
 const INDEX_PRIORITY = ["ndvi", "ndwi", "nbr"];
 
@@ -11,6 +16,11 @@ async function getJSON(url) {
   const res = await fetch(url);
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || data.error || "Request failed");
+  // Backend thumbnail paths are host-relative (/thumb/...); resolve them to the API host
+  // so the GitHub-Pages frontend can render imagery cross-origin.
+  for (const o of [data, ...Object.values(data).filter((v) => v && typeof v === "object")]) {
+    if (typeof o?.image_url === "string") o.image_url = absUrl(o.image_url);
+  }
   return data;
 }
 
