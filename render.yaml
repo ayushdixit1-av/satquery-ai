@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: satquery-ai-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.7
+      - key: EE_PROJECT
+        value: coastal-height-467710-k8
+      - key: EE_CREDENTIALS_B64
+        sync: false

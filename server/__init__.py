@@ -1,0 +1,1 @@
+"""SatQuery AI production backend (DESIGN.md §4)."""

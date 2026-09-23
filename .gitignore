@@ -1,3 +1,11 @@
 __pycache__/
+.pytest_cache/
 thumbs/
 *.log
+node_modules/
+client/dist/
+data/cache/
+render.env
+.env
+.env.*
+!.env.example

@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background: #080c14;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-slate-300 antialiased;
+    letter-spacing: -0.005em;
+  }
+
+  ::selection {
+    background: rgba(56, 189, 248, 0.25);
+    color: #e0f2fe;
+  }
+
+  :focus-visible {
+    outline: none;
+  }
+
+  *:focus-visible {
+    @apply ring-1 ring-sky ring-offset-1 ring-offset-canvas;
+  }
+}
+
+@layer components {
+  /* grounded surface system — no glassmorphism, no gradients (DESIGN.md §1) */
+  .tile {
+    @apply rounded-[6px] border border-line bg-panel;
+  }
+
+  .tile-card {
+    @apply rounded-[6px] border border-line bg-card;
+  }
+
+  .tile-recessed {
+    @apply rounded-[4px] border border-line bg-recessed;
+  }
+
+  .t-display {
+    @apply text-display font-semibold text-slate-100;
+    letter-spacing: -0.025em;
+  }
+
+  .t-section {
+    @apply text-section font-semibold text-slate-200;
+    letter-spacing: -0.015em;
+  }
+
+  .t-meta {
+    @apply text-meta font-medium text-steel uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .t-telemetry {
+    @apply font-mono text-telemetry font-medium;
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mono {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* physical button press (DESIGN.md §8.2) */
+  .btn-press {
+    @apply transition-colors;
+  }
+  .btn-press:active {
+    transform: scale(0.98) translateY(0.5px);
+  }
+
+  /* property-value row alignment (DESIGN.md §2.2) */
+  .kv {
+    @apply flex items-baseline justify-between gap-4 border-b border-line/60 py-1.5 last:border-0;
+  }
+  .kv dt {
+    @apply text-body text-steel;
+  }
+  .kv dd {
+    @apply mono text-body text-slate-200 text-right;
+  }
+}
