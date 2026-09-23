@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATQUERY AI — Satellite Change Explorer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🛰️</span>
+      <span class="brand-name">SATQUERY <em>AI</em></span>
+    </div>
+    <form class="search-bar" id="searchForm">
+      <input
+        id="q"
+        type="text"
+        placeholder="Search any place (e.g. Kanpur, Delhi, UP…)"
+        value="Kanpur"
+        autocomplete="off"
+      />
+      <button type="submit" id="searchBtn">Search</button>
+    </form>
+    <div class="dates">
+      <div class="date-group">
+        <label for="s1">From</label>
+        <input type="date" id="s1" value="2020-01-01" />
+        <input type="date" id="e1" value="2020-12-31" />
+      </div>
+      <div class="date-group">
+        <label for="s2">To</label>
+        <input type="date" id="s2" value="2025-01-01" />
+        <input type="date" id="e2" value="2025-12-31" />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="locationBadge" class="location-badge hidden"></div>
+
+    <section class="image-grid">
+      <div class="card" id="beforeCard">
+        <div class="card-head">
+          <h2>BEFORE</h2>
+          <span id="beforeMeta" class="meta">—</span>
+        </div>
+        <div class="img-wrap">
+          <img id="beforeImg" alt="Before satellite image" />
+          <div class="loading" id="beforeLoad"><div class="spinner"></div></div>
+        </div>
+      </div>
+      <div class="card" id="afterCard">
+        <div class="card-head">
+          <h2>AFTER</h2>
+          <span id="afterMeta" class="meta">—</span>
+        </div>
+        <div class="img-wrap">
+          <img id="afterImg" alt="After satellite image" />
+          <div class="loading" id="afterLoad"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slider-card">
+      <div class="card-head">
+        <h2>BEFORE / AFTER SLIDER</h2>
+      </div>
+      <div class="slider-wrap">
+        <img id="slideTop" alt="After" draggable="false" />
+        <div class="slide-after" id="slideAfterWrap">
+          <img id="slideBottom" alt="Before" draggable="false" />
+        </div>
+        <div class="handle" id="slideHandle"><span>◂ ▸</span></div>
+        <input type="range" id="slider" min="0" max="100" value="50" aria-label="Compare" />
+      </div>
+    </section>
+
+    <section class="change-grid">
+      <div class="card" id="changeCard">
+        <div class="card-head">
+          <h2>CHANGE MAP</h2>
+          <label class="switch">
+            <input type="checkbox" id="sarToggle" />
+            <span>SAR</span>
+          </label>
+        </div>
+        <div class="img-wrap">
+          <img id="changeImg" alt="Change detection map" />
+          <div class="loading" id="changeLoad"><div class="spinner"></div></div>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:#e8a13d"></i>Detected change</span>
+          <span><i class="dot" style="background:#2f9e44"></i>Stable</span>
+          <span><i class="dot" style="background:#1f78b4"></i>Water</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>CHANGE STATISTICS</h2></div>
+        <div class="stats" id="stats">
+          <div class="stat"><span class="k">—</span><span class="v">Changed (km²)</span></div>
+          <div class="stat"><span class="k">—</span><span class="v">Stable (km²)</span></div>
+          <div class="stat"><span class="k">—</span><span class="v">Water (km²)</span></div>
+          <div class="stat"><span class="k">—</span><span class="v">Confidence</span></div>
+        </div>
+        <div class="ai" id="aiText">AI interpretation will appear here…</div>
+      </div>
+    </section>
+
+    <footer class="evidence">
+      Evidence: <b>Sentinel-2</b> • <b>Sentinel-1</b> SAR <span id="sarFlag">—</span> • Temporal NDVI model
+    </footer>
+  </main>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
