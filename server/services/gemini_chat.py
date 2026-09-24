@@ -121,6 +121,10 @@ def chat(context: dict, history: list[dict]) -> str:
     payload = {
         "system_instruction": {"parts": [{"text": _system_prompt(context)}]},
         "contents": contents,
-        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 1024},
+        "generationConfig": {
+            "temperature": 0.4,
+            "maxOutputTokens": 1024,
+            "thinkingConfig": {"thinkingBudget": 512},
+        },
     }
     return _call(payload)
