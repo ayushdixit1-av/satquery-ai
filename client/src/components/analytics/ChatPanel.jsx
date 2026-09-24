@@ -102,10 +102,10 @@ export default function ChatPanel({ onClose, context }) {
             <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
               <div
                 className={cn(
-                  "max-w-[85%] rounded-[4px] border px-3 py-2 text-body leading-relaxed",
+                  "max-w-[85%] rounded-[4px] border px-3 py-2 leading-relaxed",
                   m.role === "user"
-                    ? "border-rim bg-float text-slate-100"
-                    : "border-line bg-recessed text-slate-300",
+                    ? "border-rim bg-float text-body text-slate-100"
+                    : "border-line bg-recessed font-script text-base text-slate-200",
                 )}
               >
                 {m.content}
