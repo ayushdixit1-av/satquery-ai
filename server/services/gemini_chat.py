@@ -19,7 +19,7 @@ from ..config import CACHE_DIR
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 GEMINI_TIMEOUT = 75
-_RETRY_CODES = (429, 500, 502, 503)
+_RETRY_CODES = (500, 502, 503)
 _RETRY_ATTEMPTS = 4
 _RETRY_BACKOFF = (2, 4, 8, 12)
 

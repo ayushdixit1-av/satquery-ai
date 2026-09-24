@@ -78,8 +78,26 @@ export default function ChatPanel({ onClose, context }) {
   }, []);
 
   useEffect(() => {
+    const t = setInterval(() => {
+      fetch(`${API_BASE}/api/health`).catch(() => {});
+    }, 180000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages, busy]);
+
+  const postChat = async (ct, hist, msg) => {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ context: ct, history: hist, message: msg }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Chat request failed");
+    return data.reply;
+  };
 
   const send = async (raw) => {
     const text = (raw ?? input).trim();
@@ -89,14 +107,17 @@ export default function ChatPanel({ onClose, context }) {
     setInput("");
     setBusy(true);
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context, history: next, message: text }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Chat request failed");
-      setMessages([...next, { role: "assistant", content: data.reply }]);
+      let reply;
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          reply = await postChat(context, next, text);
+          break;
+        } catch (e) {
+          if (attempt >= 2 || !(e instanceof TypeError || e instanceof SyntaxError)) throw e;
+          await new Promise((r) => setTimeout(r, 8000));
+        }
+      }
+      setMessages([...next, { role: "assistant", content: reply }]);
     } catch (e) {
       setMessages([...next, { role: "assistant", content: `⚠ SIGNAL LOST — ${e.message}` }]);
     } finally {
