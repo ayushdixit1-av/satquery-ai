@@ -10,6 +10,7 @@ to the first user turn so the model can actually look at the pair.
 import base64
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 
@@ -18,6 +19,9 @@ from ..config import CACHE_DIR
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 GEMINI_TIMEOUT = 75
+_RETRY_CODES = (429, 500, 502, 503)
+_RETRY_ATTEMPTS = 4
+_RETRY_BACKOFF = (2, 4, 8, 12)
 
 
 def _load_image_b64(image_url: str) -> dict | None:
@@ -67,14 +71,23 @@ def _call(payload: dict) -> str:
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(_endpoint(), data=data, method="POST")
     req.add_header("Content-Type", "application/json")
-    try:
-        with urllib.request.urlopen(req, timeout=GEMINI_TIMEOUT) as resp:
-            out = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", "replace")
-        raise RuntimeError(f"Gemini API {exc.code}: {body[:400]}") from exc
-    except Exception as exc:  # noqa: BLE001
-        raise RuntimeError(f"Gemini API unreachable: {exc}") from exc
+    last = None
+    for attempt in range(_RETRY_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(req, timeout=GEMINI_TIMEOUT) as resp:
+                out = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", "replace")
+            last = RuntimeError(f"Gemini API {exc.code}: {body[:400]}")
+            if exc.code in _RETRY_CODES and attempt < _RETRY_ATTEMPTS - 1:
+                time.sleep(_RETRY_BACKOFF[attempt])
+                continue
+            raise last from exc
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(f"Gemini API unreachable: {exc}") from exc
+    else:
+        raise last if last else RuntimeError("Gemini API failed")
     candidates = out.get("candidates") or []
     if not candidates:
         blocked = (out.get("promptFeedback") or {}).get("blockReason", "no candidates")
