@@ -104,6 +104,26 @@ Full scene change detection (NDVI difference + Sentinel-1 SAR corroboration) bet
 }
 ```
 
+### `POST /api/chat`
+Comparison copilot. Both epoch images (cached `/thumb` files, referenced via `context.image1`/`image2`) are attached inline to the first user turn so Gemini can analyze the actual pair.
+
+```json
+{
+  "context": {
+    "area": "Kanpur, UP", "lat": 26.45, "lng": 80.33,
+    "epochs": {"s1": "2018", "s2": "2024"},
+    "image1": "/thumb/<sha>.png", "image2": "/thumb/<sha>.png",
+    "scene1": {}, "scene2": {}, "change": {}, "water": {}
+  },
+  "history": [{"role": "user", "content": "…"}, {"role": "assistant", "content": "…"}],
+  "message": "Describe the change between the two epoch images."
+}
+```
+
+- `200` → `{"reply": "<gemini text>"}`
+- `502` → `{"detail": "Gemini API <code>: <body>"}` (key errors, throttling, blocked prompt)
+- Model: `gemini-3.6-flash` (override with `GEMINI_MODEL`); auth via Google AI Studio key `GEMINI_API_KEY` (`?key=`).
+
 ### `GET /thumb/<file>`
 Cached image binary (`image/png` / `image/jpeg`). Same-origin with the API.
 
