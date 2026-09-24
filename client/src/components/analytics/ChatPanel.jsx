@@ -4,6 +4,67 @@ import { API_BASE } from "@/hooks/useEarthEngine";
 import PanelHeader from "@/components/common/PanelHeader";
 import { cn } from "@/lib/utils";
 
+/** Minimal Markdown-lite renderer: headings, bullets, numbered lists, bold. */
+function McInline({ text }) {
+  return text.split(/\*\*(.+?)\*\*/g).map((p, i) => (i % 2 ? <strong key={i} className="text-emerald">{p}</strong> : <span key={i}>{p}</span>));
+}
+
+function Markdown({ text }) {
+  const out = [];
+  let list = null;
+  const flush = () => {
+    if (!list) return;
+    const Tag = list.type === "ol" ? "ol" : "ul";
+    out.push(
+      <Tag key={out.length} className="my-1.5 ml-4 list-outside space-y-1">
+        {list.items.map((it, j) => (
+          <li key={j}>{it}</li>
+        ))}
+      </Tag>,
+    );
+    list = null;
+  };
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (/^###? /.test(line)) {
+      flush();
+      out.push(
+        <h4 key={out.length} className="mb-1 mt-3 text-sm font-semibold tracking-wide text-emerald">
+          <McInline text={line.replace(/^###? /, "")} />
+        </h4>,
+      );
+      continue;
+    }
+    const ol = line.match(/^\d+[.)]\s+(.+)$/);
+    if (ol) {
+      if (!list || list.type !== "ol") {
+        flush();
+        list = { type: "ol", items: [] };
+      }
+      list.items.push(<McInline text={ol[1]} />);
+      continue;
+    }
+    const ul = line.match(/^[-•*]\s+(.+)$/);
+    if (ul) {
+      if (!list || list.type !== "ul") {
+        flush();
+        list = { type: "ul", items: [] };
+      }
+      list.items.push(<McInline text={ul[1]} />);
+      continue;
+    }
+    flush();
+    if (!line) continue;
+    out.push(
+      <p key={out.length} className="my-1">
+        <McInline text={line} />
+      </p>,
+    );
+  }
+  flush();
+  return <>{out}</>;
+}
+
 /** Comparison copilot — ask anything about the two selected epoch images (DESIGN.md §7). */
 export default function ChatPanel({ onClose, context }) {
   const [messages, setMessages] = useState([]);
@@ -105,10 +166,10 @@ export default function ChatPanel({ onClose, context }) {
                   "max-w-[85%] rounded-[4px] border px-3 py-2 leading-relaxed",
                   m.role === "user"
                     ? "border-rim bg-float text-body text-slate-100"
-                    : "border-line bg-recessed font-script text-base text-slate-200",
+                    : "border-line bg-recessed align-baseline text-base text-slate-200",
                 )}
               >
-                {m.content}
+                {m.role === "user" ? m.content : <Markdown text={m.content} />}
               </div>
             </div>
           ))}

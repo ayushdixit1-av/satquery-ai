@@ -98,7 +98,19 @@ def chat(context: dict, history: list[dict]) -> str:
     contents = _build_contents(context, history)
     payload = {
         "model": HF_MODEL,
-        "messages": contents,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are SATQUERY-COPILOT, a satellite-change analyst. "
+                           "You are shown TWO Sentinel-2 images (EPOCH 1 baseline, EPOCH 2 current) "
+                           "of the same footprint. Analyze only that area: land cover, vegetation, "
+                           "surface water, urban change, data caveats. Be concrete and technical. "
+                           "FORMAT your answer in readable Markdown: open with a single-line verdict, "
+                           "then short `- ` bullet points grouped under `## ` headings when useful, "
+                           "and wrap key terms in **bold**. No long paragraphs.",
+            },
+            *contents,
+        ],
         "max_tokens": 1024,
         "temperature": 0.4,
     }
