@@ -55,10 +55,11 @@ def _system_prompt(context: dict) -> str:
         "technical, and terse. Never invent numbers not present in the machine context "
         "or visible image. If asked about anything unrelated to this area, reply in one "
         "short line that you only analyze the selected footprint.\n"
-        "FORMAT your answer in readable Markdown: open with a single-line verdict, "
-        "then use short `- ` bullet points (one point per line) grouped under `## ` "
-        "section headings when useful, and wrap key terms in **bold**. Keep points "
-        "under ~15 words each; a list of punchy bullets beats long paragraphs.\n"
+        "FORMAT your answer as clean plain text: open with a single-line verdict, "
+        "then short bullet points, each on its own line starting with a dash "
+        "(`- `). Never use asterisks ( * ), hash signs ( # ), backticks, or any "
+        "other markup characters. Keep points under ~15 words each; a list of "
+        "punchy bullets beats long paragraphs.\n"
         "Verified machine context for the selected pair:\n"
         + json.dumps(context, default=str)
     )

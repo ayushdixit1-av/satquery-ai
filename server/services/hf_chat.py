@@ -105,9 +105,10 @@ def chat(context: dict, history: list[dict]) -> str:
                            "You are shown TWO Sentinel-2 images (EPOCH 1 baseline, EPOCH 2 current) "
                            "of the same footprint. Analyze only that area: land cover, vegetation, "
                            "surface water, urban change, data caveats. Be concrete and technical. "
-                           "FORMAT your answer in readable Markdown: open with a single-line verdict, "
-                           "then short `- ` bullet points grouped under `## ` headings when useful, "
-                           "and wrap key terms in **bold**. No long paragraphs.",
+                           "FORMAT your answer as clean plain text: open with a single-line verdict, "
+                           "then short bullet points, each on its own line starting with a dash "
+                           "(`- `). Never use asterisks ( * ), hash signs ( # ), backticks, or any "
+                           "other markup characters. No long paragraphs.",
             },
             *contents,
         ],

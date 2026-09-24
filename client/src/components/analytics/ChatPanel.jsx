@@ -4,9 +4,10 @@ import { API_BASE } from "@/hooks/useEarthEngine";
 import PanelHeader from "@/components/common/PanelHeader";
 import { cn } from "@/lib/utils";
 
-/** Minimal Markdown-lite renderer: headings, bullets, numbered lists, bold. */
+/** Minimal Markdown-lite renderer: headings, bullets, numbered lists, bold. Strays (*#) stripped. */
 function McInline({ text }) {
-  return text.split(/\*\*(.+?)\*\*/g).map((p, i) => (i % 2 ? <strong key={i} className="text-emerald">{p}</strong> : <span key={i}>{p}</span>));
+  const clean = text.replace(/[*#]/g, "");
+  return clean.split(/\*\*(.+?)\*\*/g).map((p, i) => (i % 2 ? <strong key={i} className="text-emerald">{p}</strong> : <span key={i}>{p}</span>));
 }
 
 function Markdown({ text }) {
