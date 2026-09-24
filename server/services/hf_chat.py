@@ -14,7 +14,7 @@ import urllib.error
 import urllib.request
 
 from ..config import CACHE_DIR
-from .gemini_chat import _load_image_b64
+from .gemini_chat import _load_image_b64, _system_prompt
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 HF_MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen3-VL-30B-A3B-Instruct")
@@ -99,17 +99,7 @@ def chat(context: dict, history: list[dict]) -> str:
     payload = {
         "model": HF_MODEL,
         "messages": [
-            {
-                "role": "system",
-                "content": "You are SATQUERY-COPILOT, a satellite-change analyst. "
-                           "You are shown TWO Sentinel-2 images (EPOCH 1 baseline, EPOCH 2 current) "
-                           "of the same footprint. Analyze only that area: land cover, vegetation, "
-                           "surface water, urban change, data caveats. Be concrete and technical. "
-                           "FORMAT your answer as clean plain text: open with a single-line verdict, "
-                           "then short bullet points, each on its own line starting with a dash "
-                           "(`- `). Never use asterisks ( * ), hash signs ( # ), backticks, or any "
-                           "other markup characters. No long paragraphs.",
-            },
+            {"role": "system", "content": _system_prompt(context)},
             *contents,
         ],
         "max_tokens": 1024,
