@@ -1,10 +1,10 @@
-"""Hugging Face Inference API copilot — multimodal (primary chat backend).
+"""Hugging Face Inference Providers copilot — multimodal (primary chat backend).
 
-Calls the public serverless endpoint so it works on Render free tier (no GPU on
-the host). Set HF_TOKEN to any HF token; HF_MODEL defaults to
-Qwen/Qwen3-VL-8B-Instruct (vision+text, best quality-per-speed on the free
-serverless tier). If a model is not loadable on the free tier, swap HF_MODEL to
-a serverless-hosted VLM such as Qwen/Qwen2.5-VL-7B-Instruct.
+Routes through router.huggingface.co (OpenAI-compatible) so it works on Render
+free tier (no GPU on the host). Set HF_TOKEN to any HF token; HF_MODEL defaults
+to Qwen/Qwen3-VL-30B-A3B-Instruct (vision+text MoE, ~3B active params: fast and
+high quality). Override via HF_MODEL env var with an org-prefixed model id that
+is available on the router (see GET https://router.huggingface.co/v1/models).
 """
 import base64
 import json
@@ -17,14 +17,14 @@ from ..config import CACHE_DIR
 from .gemini_chat import _load_image_b64
 
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
-HF_MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen3-VL-8B-Instruct")
+HF_MODEL = os.environ.get("HF_MODEL", "Qwen/Qwen3-VL-30B-A3B-Instruct")
 HF_TIMEOUT = 90
 _RETRY_ATTEMPTS = 3
 _RETRY_BACKOFF = (2, 6)
 
 
 def _endpoint() -> str:
-    return f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+    return "https://router.huggingface.co/v1/chat/completions"
 
 
 def _data_url(image: dict) -> str:
@@ -97,7 +97,9 @@ def chat(context: dict, history: list[dict]) -> str:
         raise RuntimeError("HF_TOKEN is not configured on the server.")
     contents = _build_contents(context, history)
     payload = {
+        "model": HF_MODEL,
         "messages": contents,
-        "parameters": {"temperature": 0.4, "max_new_tokens": 1024},
+        "max_tokens": 1024,
+        "temperature": 0.4,
     }
     return _parse_reply(_post(payload))
