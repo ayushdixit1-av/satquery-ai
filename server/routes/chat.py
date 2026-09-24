@@ -1,8 +1,8 @@
-"""Gemini comparison copilot endpoint (DESIGN.md §7)."""
+"""Hugging Face copilot endpoint (DESIGN.md §7)."""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from ..services import gemini_chat
+from ..services import hf_chat
 
 router = APIRouter(tags=["chat"])
 
@@ -34,7 +34,7 @@ async def chat(req: ChatRequest):
     if not history or history[-1]["content"] != req.message:
         history.append({"role": "user", "content": req.message})
     try:
-        reply = gemini_chat.chat(req.context, history)
+        reply = hf_chat.chat(req.context, history)
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    return {"reply": reply}
+    return {"reply": reply, "model": hf_chat.HF_MODEL}
